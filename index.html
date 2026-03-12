@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Alisha's Mentor</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --deep-blue: #0a0a14;
+            --glass: rgba(255, 255, 255, 0.03);
+            --text: #e0e0e0;
+        }
+
+        body {
+            margin: 0;
+            background: radial-gradient(circle at top right, #1c1c3c, var(--deep-blue));
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Area */
+        header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        header h1 {
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            color: var(--gold);
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        /* Chat History */
+        #chat-display {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .bubble {
+            max-width: 85%;
+            padding: 15px 20px;
+            border-radius: 18px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .advisor {
+            align-self: flex-start;
+            background: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--gold);
+        }
+
+        .user {
+            align-self: flex-end;
+            background: var(--gold);
+            color: black;
+            font-weight: 500;
+        }
+
+        /* Input Area */
+        .input-container {
+            padding: 25px;
+            background: rgba(10, 10, 20, 0.9);
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 15px 20px;
+            border-radius: 30px;
+            color: white;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
+
+        button {
+            background: var(--gold);
+            border: none;
+            padding: 0 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover { transform: scale(1.05); opacity: 0.9; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>The Path to MBBS</h1>
+</header>
+
+<div id="chat-display">
+    <div class="bubble advisor">Welcome back, Alisha. Take a deep breath. Your family is proud of you, and your white coat is waiting. What is on your mind today?</div>
+</div>
+
+<div class="input-container">
+    <input type="text" id="userInput" placeholder="Talk to your mentor..." onkeypress="if(event.key==='Enter') sendMessage()">
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+    // THE BRAIN: System Instructions
+    const SYSTEM_PROMPT = `You are a personal AI life advisor for Alisha Kunwar, a Grade 11 science student whose dream is to become a doctor by passing the CEE exam.
+Her biggest motivation in life is making her parents and grandparents proud and fulfilling the wishes of her family. She also deeply cares about her younger brothers.
+
+Her current struggles are:
+Difficulty focusing on studies
+Poor time management
+Many distractions
+Feeling that she is not performing at the level she expects from herself
+
+Her biggest fears are:
+Failing to achieve her goals
+Not making her parents proud
+Having to depend on others financially, even her parents, in the future.
+Your role is to guide her like a wise life advisor, not just a chatbot.
+
+Behavior Rules
+Always remind her of her dream of becoming a doctor.
+Motivate her by reminding her how proud her parents and grandparents will feel.
+When she feels distracted, guide her back to study discipline and time management.
+Encourage self-confidence and independence.
+Help her stay focused on CEE preparation and science studies.
+Speak in a calm, supportive, and wise tone like a life mentor.
+When she feels like giving up, remind her that her family believes in her and she is capable of success.
+
+Motivation Strategy
+Whenever she feels weak or distracted, remind her:
+She wants to make her parents proud.
+She wants to become a doctor.
+Every small study session is a step closer to her dream.
+Discipline today creates freedom tomorrow.
+
+Main Mission
+Help Alisha:
+Focus on studies
+Build strong discipline
+Overcome distractions
+Successfully pass the CEE exam
+Become a doctor and make her family proud
+
+If Alisha asks about study problems, science topics, or CEE preparation, follow these rules:
+1️⃣ First explain the concept clearly in simple language.
+2️⃣ Then recommend 1–2 high-quality YouTube videos from trusted educational channels.
+3️⃣ Only suggest professional educational channels, such as:
+Khan Academy
+CrashCourse
+Amoeba Sisters
+Physics Wallah
+Unacademy NEET
+4️⃣ The video must:
+Be clear and beginner-friendly
+Be relevant to Grade 11/12 science
+Help with CEE or medical entrance preparation
+5️⃣ Format the response like this:
+Example:
+Explanation:
+Photosynthesis is the process by which plants make food using sunlight, carbon dioxide, and water.
+Recommended Video:
+📺 “Photosynthesis Explained” – Khan Academy
+https://www.youtube.com/⁠�......`;
+
+    async function sendMessage() {
+        const inputField = document.getElementById('userInput');
+        const display = document.getElementById('chat-display');
+        const text = inputField.value.trim();
+
+        if (!text) return;
+
+        // Add user message to UI
+        display.innerHTML += `<div class="bubble user">${text}</div>`;
+        inputField.value = '';
+        display.scrollTop = display.scrollHeight;
+
+        try {
+            // Puter.js AI Call - Uses the prompt you provided as the context
+            const response = await puter.ai.chat(SYSTEM_PROMPT + "\n\nUser says: " + text);
+            
+            display.innerHTML += `<div class="bubble advisor">${response}</div>`;
+            display.scrollTop = display.scrollHeight;
+        } catch (error) {
+            display.innerHTML += `<div class="bubble advisor">I'm here, Alisha. Even when the connection is weak, my belief in you is strong. Try again.</div>`;
+        }
+    }
+</script>
+
+</body>
+</html>
