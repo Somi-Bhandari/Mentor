@@ -68,17 +68,46 @@
     <input type="text" id="userInput" placeholder="Talk to your mentor..." onkeypress="if(event.key==='Enter') sendMessage()">
     <button onclick="sendMessage()">Send</button>
 </div>
+    <style>
+    /* Header with title on the right */
+    header { 
+        display: flex; 
+        justify-content: flex-end; 
+        padding: 15px 20px; 
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2); 
+        background: rgba(10, 10, 20, 0.8);
+    }
+    header h1 { 
+        font-size: 0.8rem; 
+        color: var(--gold); 
+        letter-spacing: 1px; 
+    }
+    
+    /* Ensure the chat area is the only part that scrolls */
+    #chat-display {
+        flex: 1;
+        overflow-y: scroll; /* Forces vertical scroll */
+        padding: 20px;
+        -webkit-overflow-scrolling: touch; /* Smooth scroll for mobile */
+    }
+</style>
 
-<script>
+<header>
+    <h1>ALISHA'S PERSONAL ASSISTANT</h1>
+</header>
+    <script>
     const chatDisplay = document.getElementById('chat-display');
     const typingIndicator = document.getElementById('typing-indicator');
 
-    // Paste the "Brain" information here
-    const SYSTEM_CORE = `You are the Personal Life Advisor for Alisha Kunwar. Goal: CEE Doctor. District Topper 3.9 GPA. Keep paragraphs short and wise. If unsure, suggest textbooks.`;
+    // 1. YOUR BRAIN DATA (Paste this exactly)
+    const SYSTEM_CORE = `You are Alisha Kunwar's Personal Advisor. 
+    Context: SEE 2081 District Topper (3.9 GPA). Father is a bus driver. Goal: Doctor. 
+    Rules: Short paragraphs, clickable YouTube links, calm tone. 
+    If she is distracted, remind her of her dream. If you don't know something, don't guess.`;
 
-    // Load History
-    let chatHistory = JSON.parse(localStorage.getItem('alisha_v5_final')) || [
-        { role: "assistant", content: "Namaste Alisha. Your medical journey is my priority. How can I help you today?" }
+    // 2. LOAD MEMORY
+    let chatHistory = JSON.parse(localStorage.getItem('alisha_v_final')) || [
+        { role: "assistant", content: "Namaste Alisha. Your Personal Assistant is active. Let's work toward your medical degree today." }
     ];
 
     function renderChat() {
@@ -86,15 +115,14 @@
         chatHistory.forEach(msg => {
             const div = document.createElement('div');
             div.className = `bubble ${msg.role === 'user' ? 'user' : 'advisor'}`;
-            // Sanitizes and converts links
-            const cleanContent = msg.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            div.innerHTML = cleanContent.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">Watch Video</a>');
+            // Convert links and sanitize
+            div.innerHTML = msg.content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">Watch Video</a>');
             chatDisplay.appendChild(div);
         });
-        chatDisplay.scrollTop = chatDisplay.scrollHeight;
+        // AUTO-SCROLL to bottom
+        chatDisplay.scrollTo({ top: chatDisplay.scrollHeight, behavior: 'smooth' });
     }
 
-    // Initialize display
     renderChat();
 
     async function sendMessage() {
@@ -102,45 +130,42 @@
         const text = input.value.trim();
         if (!text) return;
 
-        // STEP 1: ADD USER MESSAGE TO SCREEN IMMEDIATELY
+        // Add user message immediately
         chatHistory.push({ role: "user", content: text });
         renderChat();
         input.value = '';
 
-        // STEP 2: SHOW TYPING
+        // Show Typing Indicator
         typingIndicator.style.display = 'block';
         chatDisplay.scrollTop = chatDisplay.scrollHeight;
 
         try {
-            // STEP 3: SILENT AI CALL
-            // We only send the system core and the last few messages to stay within free limits
-            const context = SYSTEM_CORE + "\nRecent Conversation:\n" + 
-                            chatHistory.slice(-4).map(m => `${m.role}: ${m.content}`).join("\n");
+            // We combine the history into a single string to avoid "Login" triggers
+            const chatContext = SYSTEM_CORE + "\n" + chatHistory.slice(-5).map(m => m.role + ": " + m.content).join("\n");
 
-            const response = await puter.ai.chat(context);
+            // PUTERS SILENT CALL
+            const response = await puter.ai.chat(chatContext);
             
             typingIndicator.style.display = 'none';
             
-            // Check if response is valid
-            if(response) {
+            if (response && response.trim().length > 0) {
                 chatHistory.push({ role: "assistant", content: response });
-                localStorage.setItem('alisha_v5_final', JSON.stringify(chatHistory));
+                localStorage.setItem('alisha_v_final', JSON.stringify(chatHistory));
                 renderChat();
             } else {
-                throw new Error("Empty response");
+                throw new Error("No response");
             }
 
         } catch (e) {
             typingIndicator.style.display = 'none';
-            console.error("AI Error:", e);
-            // Fallback so the screen isn't empty
-            const fallback = "Alisha, my connection is a bit weak, but my support for you is strong. Please try saying that again.";
-            chatHistory.push({ role: "assistant", content: fallback });
+            console.error("Chat Error:", e);
+            // Fallback so it doesn't get stuck on "Typing"
+            chatHistory.push({ role: "assistant", content: "Alisha, I am here. Sometimes the path is quiet, but my support is always loud. Please try again." });
             renderChat();
         }
     }
-</script>
-</body>
+            </script>
+    </body>
 </html>
   
  
