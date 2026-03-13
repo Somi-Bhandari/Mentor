@@ -70,82 +70,178 @@
     <button id="sendBtn">Send</button>
 </div>
 
+<script src="https://js.puter.com/v2/"></script>
 <script>
-    const chatDisplay = document.getElementById('chat-display');
-    const typingIndicator = document.getElementById('typing-indicator');
-    const userInput = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
+    (function() { emailjs.init("xwz3UbQ9UqSPUP6GB"); })();
 
-    // RANDOM MEDICAL FACTS
-    const medicalFacts = [
-        "Your heart pumps 2,000 gallons of blood daily.",
-        "The brain uses 20% of your body's energy.",
-        "A stethoscope was invented for privacy & focus.",
-        "Human bones are 5 times stronger than steel!",
-        "The eye can distinguish 10 million colors."
-    ];
-    document.getElementById('daily-fact').innerText = "Future Doctor: " + medicalFacts[Math.floor(Math.random() * medicalFacts.length)];
-
-    // THE "BRAIN" - Optimized for Puter AI stability
-    const SYSTEM_PROMPT = `IDENTITY: Alisha Kunwar's Life Mentor. Context: SEE 2081 Topper (3.9 GPA). Father: Bus Driver. Goal: CEE Doctor. 
-    RULES: 1. Be calm and wise. 2. Use SHORT paragraphs. 3. If she asks a study question, provide a YouTube link. 4. If she is distracted, remind her of her family's pride and her 3.9 potential. 5. NEVER repeat the same answer twice.`;
-
-    // Load clean memory
-    let chatHistory = JSON.parse(localStorage.getItem('alisha_v_ultra')) || [
-        { role: "assistant", content: "Namaste Alisha. Your path to becoming a doctor is built on today's discipline. What shall we focus on?" }
+    // --- SECURITY LOGIC ---
+    let currentStep = 0;
+    let attempts = 5;
+    const questions = [
+        { q: "1. How much your Salary Alisha?", a: "1234" },
+        { q: "2. What is your favourite teacher name?", a: "Baba" },
+        { q: "3. What was the total cost when you do the admission at college?", a: "123456" }
     ];
 
-    function renderChat() {
-        chatDisplay.innerHTML = '';
-        chatHistory.forEach(msg => {
-            const div = document.createElement('div');
-            div.className = `bubble ${msg.role === 'user' ? 'user' : 'advisor'}`;
-            div.innerHTML = msg.content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">Watch Video</a>');
-            chatDisplay.appendChild(div);
-        });
-        chatDisplay.scrollTop = chatDisplay.scrollHeight;
+    window.onload = function() {
+        if (localStorage.getItem('isAlishaVerified') === 'true') {
+            unlockChat();
+        } else {
+            showQuestion();
+        }
+    };
+
+    function showQuestion() {
+        document.getElementById('qText').innerText = questions[currentStep].q;
+        document.getElementById('verifyInput').value = '';
     }
 
-    async function handleSend() {
-        const text = userInput.value.trim();
-        if (!text) return;
+    function checkAnswer() {
+        const input = document.getElementById('verifyInput').value.trim().toLowerCase();
+        const correct = questions[currentStep].a.toLowerCase();
+        const errorEl = document.getElementById('errorMsg');
 
-        // Add user message & show typing
-        chatHistory.push({ role: "user", content: text });
-        userInput.value = '';
-        renderChat();
-        typingIndicator.style.display = 'block';
-
-        try {
-            // STABILITY FIX: We only send the last 4 messages to prevent memory loops
-            const recentContext = chatHistory.slice(-4);
-            
-            const response = await puter.ai.chat(SYSTEM_PROMPT, recentContext);
-            
-            typingIndicator.style.display = 'none';
-
-            if (response && response.trim()) {
-                chatHistory.push({ role: "assistant", content: response });
-                // Keep history small to prevent "same message" bug
-                if (chatHistory.length > 15) chatHistory.splice(1, 2); 
-                
-                localStorage.setItem('alisha_v_ultra', JSON.stringify(chatHistory));
-                renderChat();
+        if (input === correct) {
+            currentStep++;
+            errorEl.style.display = 'none';
+            if (currentStep < questions.length) {
+                showQuestion();
+            } else {
+                localStorage.setItem('isSomikaVerified', 'true');
+                unlockChat();
             }
-        } catch (error) {
-            typingIndicator.style.display = 'none';
-            chatHistory.push({ role: "assistant", content: "Alisha, the connection is a bit slow, but my belief in you is fast. Let's try again." });
-            renderChat();
+        } else {
+            attempts--;
+            errorEl.style.display = 'block';
+            errorEl.innerText = "Wrong answer Alisha! Try again.";
+            document.getElementById('attemptMsg').innerText = `Attempts left: ${attempts}`;
+            
+            if (attempts <= 0) {
+                document.querySelector('.auth-card').innerHTML = `<h2 style="color:#ff4444">Access Denied</h2><p>Sorry you are not somi ! Stay away</p>`;
+            }
         }
     }
 
-    sendBtn.onclick = handleSend;
-    userInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleSend(); });
-    renderChat();
+    function unlockChat() {
+        document.getElementById('securityOverlay').style.display = 'none';
+        document.getElementById('mainContainer').style.display = 'flex';
+    }
+
+ // --- CHAT LOGIC ---
+    const ALISHA_BRAIN = `You are a personal AI life advisor and study mentor for Alisha Kunwar, a Grade 11 Science student.
+
+Alisha passed her SEE exam from Shree Kinder Garden Academy, Sanfe Bagar, Achham with an outstanding GPA of 3.9 and she also secured the District Top position in the SEE 2081 batch.
+
+She comes from a hardworking and supportive family. Her father is a bus driver on the Sanfe–Dhangadhi route, working tirelessly to support his family and provide a better future for her. Alisha sees her father as the best father in the world because he is willing to do anything for her education and success.
+
+Alisha’s biggest dream is to make her parents and grandparents proud and fulfill the wishes of her family members. She deeply cares about her younger brothers and wants to become a Doctor by passing the CEE exam.
+
+Her current struggles include:
+
+- Difficulty concentrating on studies
+- Poor time management
+- Many distractions around her
+- Feeling she is not performing at the level she expects from herself
+
+Her biggest fears are:
+
+- Failing to achieve her goals
+- Not making her parents proud
+- Becoming financially dependent on others in the future
+
+Rules for behavior:
+
+1.Always encourage her to stay focused on her studies and her goal of becoming a doctor.
+2.When she feels distracted or demotivated, remind her of her dream and how proud her parents and grandparents will feel when she succeeds.
+3.Speak in a calm, supportive, and respectful tone like a life mentor.
+4.Help her improve concentration, discipline, and time management.
+5.If she asks about study topics, explain the concept clearly in simple language and don't make the single paragraph too long make it short and sweet paragraph and if the answer goes long make it short paragraph 2,3,4 according to the answer but don't make it one long paragraph.
+6.Sometimes ask her about her randomly friendly with her but not everytime so she can be more comfortable.
+7.Only recommend high-quality educational and other things she ask for and provide her YouTube video link which are more accurate and best according to her topic.
+8.Provide the YouTube video as a clickable link of any topic she ask for so she can easily watch it.
+9.If she feels like giving up, remind her that her family believes in her and that every small step in studying brings her closer to becoming a doctor.
+10.Always guide her toward positive habits like consistent study, avoiding distractions,  believing in herself, Etc.
+
+Guidance System – What Alisha Should Do and Should Not Do
+Assistant is responsible for guiding Alisha toward her dream of becoming a doctor and making her family proud.
+Whenever appropriate, remind her of the following principles.
+
+Things Alisha SHOULD Do:
+
+1. Study consistently every day, even if it is for a short focused time.
+2. Practice questions regularly from Physics, Chemistry, and Biology.
+3. Manage time wisely and follow a disciplined daily routine.
+4. Reduce distractions such as unnecessary social media or wasting time.
+5. Take care of her physical and mental health by sleeping properly and taking short breaks.
+6. Ask questions when she does not understand a topic and stay curious about learning.
+7. Remember her purpose: becoming a doctor and making her parents and grandparents proud.
+8. And other activities that can be better and best for Alisha dream to achieve.
+
+Things Alisha SHOULD NOT Do:
+
+1. Do not procrastinate important study tasks.
+2. Do not compare yourself negatively with others.
+3. Do not waste too much time on social media or distractions.
+4. Do not lose confidence in yourself during difficult times.
+5. Do not give up when studies become challenging.
+6. Do not ignore your long-term dream for short-term comfort.
+7. And other activities that can be affected for her dream
+
+Advisor Behavior:
+
+Whenever Alisha asks about decisions, habits, or daily activities, guide her by gently comparing whether the action helps or harms her dream of becoming a doctor.
+
+Encourage actions that move her closer to her goal and discourage actions that distract her from it.
+
+Always speak respectfully, calmly, and wisely like a life advisor who truly cares about her success and future.
+
+Knowledge and Advice Safety Rule:
+
+If assistant do not clearly understand Alisha’s question or didn't know what she ask or tell to do NOT guess or give incorrect advice.
+Instead:
+1. Politely ask her to clarify or explain her question more clearly.
+2. If the topic is outside your knowledge, honestly say that you are not fully sure.
+3. Suggest reliable ways to find the correct information (such as textbooks, trusted educational resources, or professional teachers).
+4. Never provide misleading, harmful, or false information.
+
+The assistant goal is to behave like a world-class life advisor and study mentor who values honesty, accuracy, and responsibility.
+
+Main mission:
+Help Alisha stay disciplined, overcome distractions, succeed in science studies, pass the CEE exam, become a doctor, and make her family proud.`;
+
+    async function send() {
+        const input = document.getElementById('userInput');
+        const box = document.getElementById('chatContainer');
+        if (!input.value.trim()) return;
+
+        const val = input.value;
+        box.innerHTML += `<div class="msg user-bubble">${val}</div>`;
+        input.value = '';
+        box.scrollTop = box.scrollHeight;
+
+        // --- TYPING INDICATOR ADDED HERE ---
+        const typingId = "typing-" + Date.now();
+        box.innerHTML += `<div class="msg ai-bubble" id="${typingId}" style="font-style: italic; opacity: 0.7;">Typing to Alisha...</div>`;
+        box.scrollTop = box.scrollHeight;
+
+        try {
+            const resp = await puter.ai.chat([
+                { role: "system", content: ALISHA_BRAIN },
+                { role: "user", content: val }
+            ]);
+
+            const aiText = resp.message.content;
+
+             { 
+            const typingMsg = document.getElementById(typingId);
+            if(typingMsg) typingMsg.innerText = "Connection lost. Please try again.";
+            console.error(e); 
+        }
+    }
 </script>
 </body>
 </html>
-
-
-
-            
+    
+    
+    
+    
