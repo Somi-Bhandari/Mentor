@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Alisha's Assistant</title>
     <script src="https://js.puter.com/v2/"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #d4af37; --bg: #0a0a14; --glass: rgba(255, 255, 255, 0.05); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -16,42 +16,50 @@
             height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
         }
 
-        /* Top Right Header */
+        /* Stylish Header */
         header { 
-            display: flex; justify-content: flex-end; padding: 15px 20px; 
-            border-bottom: 1px solid rgba(212, 175, 55, 0.1); backdrop-filter: blur(10px); flex-shrink: 0;
+            display: flex; justify-content: flex-end; padding: 20px; 
+            background: linear-gradient(to left, rgba(212, 175, 55, 0.1), transparent);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15); flex-shrink: 0;
         }
-        header h1 { font-size: 0.75rem; color: var(--gold); letter-spacing: 1.5px; margin: 0; font-weight: 600; }
+        header h1 { 
+            font-family: 'Playfair Display', serif; font-size: 0.85rem; 
+            color: var(--gold); letter-spacing: 2px; margin: 0; font-style: italic;
+        }
 
-        /* Scrolling Chat Area */
+        /* Fixed Scrolling Area - This is the fix for your scrolling issue */
         #chat-display { 
-            flex: 1; overflow-y: auto; padding: 20px; 
-            display: flex; flex-direction: column; gap: 15px;
-            scroll-behavior: smooth;
+            flex: 1; overflow-y: scroll; padding: 20px; 
+            display: flex; flex-direction: column; gap: 18px;
+            scroll-behavior: smooth; height: 100%;
         }
+
+        /* Custom Scrollbar for a premium look */
+        #chat-display::-webkit-scrollbar { width: 4px; }
+        #chat-display::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
 
         .bubble { 
-            max-width: 85%; padding: 14px 18px; border-radius: 18px; 
+            max-width: 85%; padding: 14px 18px; border-radius: 20px; 
             line-height: 1.6; font-size: 0.95rem; word-wrap: break-word;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
-        .advisor { align-self: flex-start; background: var(--glass); border-left: 3px solid var(--gold); border-bottom-left-radius: 4px; }
+        .advisor { align-self: flex-start; background: var(--glass); border-left: 2px solid var(--gold); border-bottom-left-radius: 4px; border-top-left-radius: 15px; }
         .user { align-self: flex-end; background: var(--gold); color: #000; font-weight: 500; border-bottom-right-radius: 4px; }
 
-        .typing { font-size: 0.8rem; color: var(--gold); padding: 5px 25px; display: none; font-style: italic; opacity: 0.8; }
+        .typing { font-size: 0.8rem; color: var(--gold); padding: 8px 25px; display: none; font-style: italic; letter-spacing: 1px; }
 
-        /* Fixed Input Area at Bottom */
+        /* Stylish Fixed Input */
         .input-area { 
-            padding: 15px 15px 35px 15px; 
-            background: rgba(10, 10, 20, 0.98); 
-            display: flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 15px 15px 35px 15px; background: #0f0f1b; 
+            display: flex; gap: 12px; border-top: 1px solid rgba(212, 175, 55, 0.1);
             flex-shrink: 0;
         }
         input { 
-            flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(212, 175, 55, 0.3); 
-            padding: 14px 18px; border-radius: 30px; color: white; outline: none; font-size: 16px;
+            flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(212, 175, 55, 0.2); 
+            padding: 14px 20px; border-radius: 30px; color: white; outline: none; font-size: 16px;
         }
-        button { background: var(--gold); border: none; padding: 0 25px; border-radius: 30px; cursor: pointer; font-weight: bold; color: #000; }
+        button { background: var(--gold); border: none; padding: 0 25px; border-radius: 30px; cursor: pointer; font-weight: bold; color: #000; transition: 0.3s; }
+        button:active { transform: scale(0.95); }
 
         a { color: #00d2ff; text-decoration: underline; font-weight: 600; }
     </style>
@@ -63,7 +71,7 @@
 </header>
 
 <div id="chat-display"></div>
-<div id="typing-indicator" class="typing">Typing to Alisha...</div>
+<div id="typing-indicator" class="typing">Mentoring Alisha...</div>
 
 <div class="input-area">
     <input type="text" id="userInput" placeholder="Ask your mentor..." autocomplete="off">
@@ -76,11 +84,13 @@
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
 
-    // PASTE THE BRAIN INFORMATION HERE
-    const SYSTEM_PROMPT = `You are Alisha Kunwar's Life Advisor. SEE 2081 District Topper (3.9 GPA). Father is a bus driver. Goal: CEE Doctor. Remind her of her family's pride. Keep paragraphs short. If she asks for a topic, provide a clickable YouTube link.`;
+    // CONTEXT BRAIN
+    const SYSTEM_PROMPT = `You are Alisha Kunwar's Life Advisor. District Topper 3.9 GPA. Father: Bus Driver. Goal: CEE Doctor. 
+    Remind her of her potential. Keep answers under 3 short paragraphs. Use YouTube links as <a> tags.`;
 
-    let chatHistory = JSON.parse(localStorage.getItem('alisha_final_v1')) || [
-        { role: "assistant", content: "Namaste Alisha. Your path to becoming a doctor starts with today's discipline. I'm ready when you are." }
+    // VERSIONED MEMORY to clear out previous errors
+    let chatHistory = JSON.parse(localStorage.getItem('alisha_pro_v1')) || [
+        { role: "assistant", content: "Namaste, Alisha. Your medical dream is our focus. How are you feeling about your studies today?" }
     ];
 
     function renderChat() {
@@ -98,29 +108,31 @@
         const text = userInput.value.trim();
         if (!text) return;
 
-        // 1. Update UI
         chatHistory.push({ role: "user", content: text });
         userInput.value = '';
         renderChat();
 
-        // 2. Show Typing
         typingIndicator.style.display = 'block';
         chatDisplay.scrollTop = chatDisplay.scrollHeight;
 
         try {
-            // Puter AI Chat Call with timeout protection
-            const response = await puter.ai.chat(SYSTEM_PROMPT, chatHistory.slice(-6));
+            // RELIABLE AI CALL: Using the context + chat logic
+            const response = await puter.ai.chat(SYSTEM_PROMPT, chatHistory.slice(-8));
             
             typingIndicator.style.display = 'none';
-            if(response) {
+            if(response && response.trim() !== "") {
                 chatHistory.push({ role: "assistant", content: response });
-                localStorage.setItem('alisha_final_v1', JSON.stringify(chatHistory));
+                localStorage.setItem('alisha_pro_v1', JSON.stringify(chatHistory));
                 renderChat();
+            } else {
+                throw new Error("Empty response");
             }
         } catch (error) {
             typingIndicator.style.display = 'none';
-            console.error("Puter Error:", error);
-            chatHistory.push({ role: "assistant", content: "I'm right here, Alisha. Let's try that again." });
+            console.error("AI Error:", error);
+            // Dynamic recovery message
+            const recoveryMsg = "Alisha, even when I'm quiet, I'm with you. Let's try that question one more time—your dream is worth the effort.";
+            chatHistory.push({ role: "assistant", content: recoveryMsg });
             renderChat();
         }
     }
@@ -132,3 +144,5 @@
 </script>
 </body>
 </html>
+
+
