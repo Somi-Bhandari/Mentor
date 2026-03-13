@@ -73,12 +73,12 @@
     const chatDisplay = document.getElementById('chat-display');
     const typingIndicator = document.getElementById('typing-indicator');
 
-    // PASTE YOUR BRAIN DATA HERE
-    const SYSTEM_CORE = `You are the Personal AI Advisor for Alisha Kunwar. SEE 2081 District Topper (3.9 GPA). Father is a bus driver (Sanfe-Dhangadhi). Goal: CEE Doctor. Be wise, calm, and use short paragraphs. Provide YouTube links as clickable <a> tags.`;
+    // Paste the "Brain" information here
+    const SYSTEM_CORE = `You are the Personal Life Advisor for Alisha Kunwar. Goal: CEE Doctor. District Topper 3.9 GPA. Keep paragraphs short and wise. If unsure, suggest textbooks.`;
 
-    // Load History or Start New
-    let chatHistory = JSON.parse(localStorage.getItem('alisha_v4')) || [
-        { role: "assistant", content: "Namaste Alisha. Your medical journey continues today. How can I help you move one step closer to your dream?" }
+    // Load History
+    let chatHistory = JSON.parse(localStorage.getItem('alisha_v5_final')) || [
+        { role: "assistant", content: "Namaste Alisha. Your medical journey is my priority. How can I help you today?" }
     ];
 
     function renderChat() {
@@ -86,13 +86,15 @@
         chatHistory.forEach(msg => {
             const div = document.createElement('div');
             div.className = `bubble ${msg.role === 'user' ? 'user' : 'advisor'}`;
-            // Use innerHTML to allow links
-            div.innerHTML = msg.content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">Watch Video</a>');
+            // Sanitizes and converts links
+            const cleanContent = msg.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            div.innerHTML = cleanContent.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">Watch Video</a>');
             chatDisplay.appendChild(div);
         });
         chatDisplay.scrollTop = chatDisplay.scrollHeight;
     }
 
+    // Initialize display
     renderChat();
 
     async function sendMessage() {
@@ -100,33 +102,47 @@
         const text = input.value.trim();
         if (!text) return;
 
-        // 1. Update UI immediately so message doesn't "disappear"
+        // STEP 1: ADD USER MESSAGE TO SCREEN IMMEDIATELY
         chatHistory.push({ role: "user", content: text });
         renderChat();
         input.value = '';
 
-        // 2. Show Typing
+        // STEP 2: SHOW TYPING
         typingIndicator.style.display = 'block';
         chatDisplay.scrollTop = chatDisplay.scrollHeight;
 
         try {
-            // SILENT CALL: We pass the history and system prompt
-            // Puter.js works without login if you don't call 'puter.auth.signIn()'
-            const response = await puter.ai.chat(SYSTEM_CORE + "\n" + JSON.stringify(chatHistory.slice(-5)));
+            // STEP 3: SILENT AI CALL
+            // We only send the system core and the last few messages to stay within free limits
+            const context = SYSTEM_CORE + "\nRecent Conversation:\n" + 
+                            chatHistory.slice(-4).map(m => `${m.role}: ${m.content}`).join("\n");
+
+            const response = await puter.ai.chat(context);
             
             typingIndicator.style.display = 'none';
-            chatHistory.push({ role: "assistant", content: response });
             
-            // 3. Save to Memory
-            localStorage.setItem('alisha_v4', JSON.stringify(chatHistory));
-            renderChat();
+            // Check if response is valid
+            if(response) {
+                chatHistory.push({ role: "assistant", content: response });
+                localStorage.setItem('alisha_v5_final', JSON.stringify(chatHistory));
+                renderChat();
+            } else {
+                throw new Error("Empty response");
+            }
+
         } catch (e) {
             typingIndicator.style.display = 'none';
-            console.error("Puter Error:", e);
-            chatHistory.push({ role: "assistant", content: "I'm right here, Alisha. Let's try that again." });
+            console.error("AI Error:", e);
+            // Fallback so the screen isn't empty
+            const fallback = "Alisha, my connection is a bit weak, but my support for you is strong. Please try saying that again.";
+            chatHistory.push({ role: "assistant", content: fallback });
             renderChat();
         }
     }
 </script>
 </body>
 </html>
+  
+ 
+    
+    
