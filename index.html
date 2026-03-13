@@ -72,14 +72,12 @@
 
 <script src="https://js.puter.com/v2/"></script>
 <script>
-    (function() { emailjs.init("xwz3UbQ9UqSPUP6GB"); })();
-
     // --- SECURITY LOGIC ---
     let currentStep = 0;
     let attempts = 5;
     const questions = [
         { q: "1. How much your Salary Alisha?", a: "1234" },
-        { q: "2. What is your favourite teacher name?", a: "Baba" },
+        { q: "2. What is the name of your favourite teacher alisha?", a: "Baba" },
         { q: "3. What was the total cost when you do the admission at college?", a: "123456" }
     ];
 
@@ -107,13 +105,13 @@
             if (currentStep < questions.length) {
                 showQuestion();
             } else {
-                localStorage.setItem('isSomikaVerified', 'true');
+                localStorage.setItem('isAlishaVerified', 'true');
                 unlockChat();
             }
         } else {
             attempts--;
             errorEl.style.display = 'block';
-            errorEl.innerText = "Wrong answer Alisha! Try again.";
+            errorEl.innerText = "Wrong answer Somi! Try again.";
             document.getElementById('attemptMsg').innerText = `Attempts left: ${attempts}`;
             
             if (attempts <= 0) {
@@ -127,7 +125,7 @@
         document.getElementById('mainContainer').style.display = 'flex';
     }
 
- // --- CHAT LOGIC ---
+    // --- CHAT LOGIC ---
     const ALISHA_BRAIN = `You are a personal AI life advisor and study mentor for Alisha Kunwar, a Grade 11 Science student.
 
 Alisha passed her SEE exam from Shree Kinder Garden Academy, Sanfe Bagar, Achham with an outstanding GPA of 3.9 and she also secured the District Top position in the SEE 2081 batch.
@@ -207,7 +205,7 @@ Instead:
 The assistant goal is to behave like a world-class life advisor and study mentor who values honesty, accuracy, and responsibility.
 
 Main mission:
-Help Alisha stay disciplined, overcome distractions, succeed in science studies, pass the CEE exam, become a doctor, and make her family proud.`;
+Help Alisha stay disciplined, overcome distractions, succeed in science studies, pass the CEE exam, become a doctor, and make her family proud.';
 
     async function send() {
         const input = document.getElementById('userInput');
@@ -219,7 +217,6 @@ Help Alisha stay disciplined, overcome distractions, succeed in science studies,
         input.value = '';
         box.scrollTop = box.scrollHeight;
 
-        // --- TYPING INDICATOR ADDED HERE ---
         const typingId = "typing-" + Date.now();
         box.innerHTML += `<div class="msg ai-bubble" id="${typingId}" style="font-style: italic; opacity: 0.7;">Typing to Alisha...</div>`;
         box.scrollTop = box.scrollHeight;
@@ -232,7 +229,15 @@ Help Alisha stay disciplined, overcome distractions, succeed in science studies,
 
             const aiText = resp.message.content;
 
-             { 
+            const typingMsg = document.getElementById(typingId);
+            if(typingMsg) typingMsg.remove();
+
+            box.innerHTML += `<div class="msg ai-bubble">${aiText}</div>`;
+            box.scrollTop = box.scrollHeight;
+
+            // EMAILJS REMOVED FROM HERE
+
+        } catch (e) { 
             const typingMsg = document.getElementById(typingId);
             if(typingMsg) typingMsg.innerText = "Connection lost. Please try again.";
             console.error(e); 
